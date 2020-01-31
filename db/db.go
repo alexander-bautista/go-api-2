@@ -14,22 +14,26 @@ import (
 // DbName :  Database name
 const DbName = "todo"
 
+var Ctx context.Context
+var Client *mongo.Client
+var Cancel context.CancelFunc
+
 // Connect : Connect
 func Connect() (context.Context, *mongo.Client) {
 
 	connectionString := "mongodb+srv://todo_user:todo2020@traffic-nkwxe.mongodb.net/todo?retryWrites=true&w=majority"
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(connectionString))
+	Ctx, Cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	Client, err := mongo.Connect(Ctx, options.Client().ApplyURI(connectionString))
 
-	defer cancel()
+	defer Cancel()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Check the connection
-	err = client.Ping(ctx, readpref.Primary())
+	err = Client.Ping(Ctx, readpref.Primary())
 
 	if err != nil {
 		log.Fatal(err)
@@ -37,11 +41,11 @@ func Connect() (context.Context, *mongo.Client) {
 
 	fmt.Println("Connected to MongoDB!")
 
-	return ctx, client
+	return Ctx, Client
 }
 
 // Disconnect : Disconnect
-func Disconnect(ctx context.Context, client *mongo.Client) {
+func Disconnect() {
 	fmt.Println("Disconnecting from MongoDB!")
-	defer client.Disconnect(ctx)
+	defer Client.Disconnect(Ctx)
 }
