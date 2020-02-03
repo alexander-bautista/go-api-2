@@ -5,9 +5,13 @@ import (
 	"log"
 	"math/rand"
 
+	//"log"
+	//"math/rand"
+
 	"github.com/alexander-bautista/go-api-2/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	//"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -37,12 +41,18 @@ type price struct {
 
 // GetAll : get all items
 func GetAll() (items []Comic) {
-	collection := db.Client.Database("todo").Collection(Collection)
-	cursor, _ := collection.Find(context.TODO(), bson.M{})
 
-	defer cursor.Close(context.TODO())
+	ctx, client := db.Connect()
 
-	for cursor.Next(context.TODO()) {
+	collection := client.Database("todo").Collection(Collection)
+	cursor, _ := collection.Find(ctx, bson.M{})
+
+	defer func() {
+		cursor.Close(ctx)
+		client.Disconnect(ctx)
+	}()
+
+	for cursor.Next(ctx) {
 		var oneItem Comic
 		err := cursor.Decode(&oneItem)
 
@@ -57,13 +67,18 @@ func GetAll() (items []Comic) {
 
 // GetOne : Get one item
 func GetOne(id int) (item Comic) {
-	collection := db.GetClient().Database("todo").Collection(Collection)
+
+	ctx, client := db.Connect()
+
+	defer client.Disconnect(ctx)
+
+	collection := client.Database("todo").Collection(Collection)
 	collection.FindOne(context.TODO(), bson.M{"id": id}).Decode(&item)
 	return
 }
 
 // Add : Add one item to collection
-func Add(comic Comic) interface{} {
+/*func Add(comic Comic) interface{} {
 	collection := db.Client.Database("todo").Collection(Collection)
 
 	result, err := collection.InsertOne(context.TODO(), comic)
@@ -86,10 +101,15 @@ func AddMany(items []interface{}) interface{} {
 
 	return result.InsertedIDs
 }
-
+*/
 // FindOneAndUpdate : finds one comic and update if exist or create it otherwise
 func FindOneAndUpdate(comic Comic) (bson.M, error) {
-	collection := db.Client.Database("todo").Collection(Collection)
+
+	ctx, client := db.Connect()
+
+	defer client.Disconnect(ctx)
+
+	collection := client.Database("todo").Collection(Collection)
 	filter := bson.M{"id": comic.Id}
 
 	// Create an instance of an options and set the desired options
@@ -103,7 +123,8 @@ func FindOneAndUpdate(comic Comic) (bson.M, error) {
 	// Set quantity random
 	comic.Quantity = rand.Intn(1000)
 
-	result := collection.FindOneAndUpdate(context.TODO(), filter, bson.M{"$set": comic}, &opt)
+	
+	result := collection.FindOneAndUpdate(ctx, filter, bson.M{"$set": comic}, &opt)
 
 	if result.Err() != nil {
 		return nil, result.Err()

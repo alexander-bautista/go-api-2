@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,26 +15,33 @@ import (
 // DbName :  Database name
 const DbName = "todo"
 
-var Ctx context.Context
-var Client *mongo.Client
-var Cancel context.CancelFunc
+// Client contains mongo.Client
+type Client struct {
+	client *mongo.Client
+}
 
-// Connect : Connect
 func Connect() (context.Context, *mongo.Client) {
-
 	connectionString := "mongodb+srv://todo_user:todo2020@traffic-nkwxe.mongodb.net/todo?retryWrites=true&w=majority"
 
-	Ctx, Cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	Client, err := mongo.Connect(Ctx, options.Client().ApplyURI(connectionString))
+	if os.Getenv("DATABASE_URL") != "" {
+		connectionString = os.Getenv("DATABASE_URL")
+	}
 
-	defer Cancel()
+	opts := options.Client()
+	opts.ApplyURI(connectionString)
+	opts.SetMaxPoolSize(5)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	client, err := mongo.Connect(ctx, opts)
+
+	defer cancel()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Check the connection
-	err = Client.Ping(Ctx, readpref.Primary())
+	err = client.Ping(context.Background(), readpref.Primary())
 
 	if err != nil {
 		log.Fatal(err)
@@ -41,15 +49,11 @@ func Connect() (context.Context, *mongo.Client) {
 
 	fmt.Println("Connected to MongoDB!")
 
-	return Ctx, Client
+	return ctx, client
 }
 
 // Disconnect : Disconnect
-func Disconnect() {
+/*func Disconnect() {
 	fmt.Println("Disconnecting from MongoDB!")
-	defer Client.Disconnect(Ctx)
-}
-
-func GetClient() *mongo.Client {
-	return Client
-}
+	defer Client.Disconnect(context.Background())
+}*/

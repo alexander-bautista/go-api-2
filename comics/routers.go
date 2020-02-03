@@ -2,7 +2,9 @@ package comics
 
 import (
 	"fmt"
+
 	"github.com/gin-gonic/gin"
+
 	"log"
 	"net/http"
 	"strconv"
@@ -66,11 +68,11 @@ func RetrieveAll(c *gin.Context) {
 	}
 
 	/*items := make([]interface{}, len(comics))
-	for i := range comics {
-		comics[i].Quantity = rand.Intn(1000)
-		items[i] = comics[i]
-	}
-	comic.AddMany(_client, items)*/
+	  for i := range comics {
+	  	comics[i].Quantity = rand.Intn(1000)
+	  	items[i] = comics[i]
+	  }
+	  comic.AddMany(_client, items)*/
 
 	c.JSON(http.StatusOK, items)
 }

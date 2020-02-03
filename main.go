@@ -10,18 +10,16 @@ import (
 	"time"
 
 	"github.com/alexander-bautista/go-api-2/comics"
-	"github.com/alexander-bautista/go-api-2/db"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var _ctx context.Context
-var _client *mongo.Client
+/*var _ctx context.Context
+var _client *mongo.Client*/
 var _cancel context.CancelFunc
 
 func main() {
-	_ctx, _client = db.Connect()
+	//_ctx, _client = db.Connect()
 
 	router := gin.Default()
 
@@ -63,7 +61,7 @@ func main() {
 	}
 	log.Println("Server exiting")
 
-	db.Disconnect()
+	//db.Disconnect()
 }
 
 func sleepAndTalk(ctx context.Context, d time.Duration, s string) {
