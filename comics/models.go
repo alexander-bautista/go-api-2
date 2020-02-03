@@ -57,7 +57,7 @@ func GetAll() (items []Comic) {
 
 // GetOne : Get one item
 func GetOne(id int) (item Comic) {
-	collection := db.Client.Database("todo").Collection(Collection)
+	collection := db.GetClient().Database("todo").Collection(Collection)
 	collection.FindOne(context.TODO(), bson.M{"id": id}).Decode(&item)
 	return
 }

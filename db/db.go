@@ -49,3 +49,7 @@ func Disconnect() {
 	fmt.Println("Disconnecting from MongoDB!")
 	defer Client.Disconnect(Ctx)
 }
+
+func GetClient() *mongo.Client {
+	return Client
+}
