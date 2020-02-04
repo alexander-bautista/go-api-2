@@ -35,8 +35,8 @@ type price struct {
 	Price float32 `json:"price"`
 }
 
-// getAll : get all items
-func getAll() (items []Comic) {
+// getAll : get all comics
+func getAll() (comics []Comic) {
 
 	ctx, client := db.Connect()
 
@@ -49,19 +49,19 @@ func getAll() (items []Comic) {
 	}()
 
 	for cursor.Next(ctx) {
-		var oneItem Comic
-		err := cursor.Decode(&oneItem)
+		var comic Comic
+		err := cursor.Decode(&comic)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		items = append(items, oneItem)
+		comics = append(comics, comic)
 	}
 	return
 }
 
-// getOne : Get one item
+// getOne : Get one comic by id.
 func getOne(id int) (item Comic) {
 
 	ctx, client := db.Connect()

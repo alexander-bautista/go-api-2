@@ -29,8 +29,8 @@ type ComicDataReponse struct {
 	Results []Comic `json:"results"`
 }
 
-// GetComics : get comics by filter
-func GetComics(titleStartsWith, dateRange string) (comicResponse ComicsResponse) {
+// findComics : get comics by filter
+func findComics(titleStartsWith, dateRange string) (comicResponse ComicsResponse) {
 
 	ts, hash := md5Hash()
 
@@ -59,8 +59,8 @@ func GetComics(titleStartsWith, dateRange string) (comicResponse ComicsResponse)
 	return
 }
 
-// GetOneComicById : get one commic by id
-func GetOneComicById(id string) (comicResponse ComicsResponse) {
+// findComic : get one commic by id
+func findComic(id string) (comicResponse ComicsResponse) {
 	ts, hash := md5Hash()
 
 	url := fmt.Sprintf("http://gateway.marvel.com/v1/public/comics/%s?ts=%s&apikey=%s&hash=%s", id, ts, publicKey, hash)

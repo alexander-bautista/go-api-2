@@ -31,7 +31,7 @@ func RetrieveOne(c *gin.Context) {
 		return
 	}
 
-	comicResponse := GetOneComicById(idParam)
+	comicResponse := findComic(idParam)
 
 	c.JSON(http.StatusOK, comicResponse)
 }
@@ -46,7 +46,7 @@ func RetrieveAll(c *gin.Context) {
 	}
 
 	// Get Marvel data (always) with filters
-	comicsResponse := GetComics(titleStartsWith, dateRange)
+	comicsResponse := findComics(titleStartsWith, dateRange)
 
 	if comicsResponse.Code != http.StatusOK {
 		log.Fatal("Marvel API response code", comicsResponse.Code)
