@@ -5,17 +5,13 @@ import (
 	"log"
 	"math/rand"
 
-	//"log"
-	//"math/rand"
-
 	"github.com/alexander-bautista/go-api-2/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	//"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
-	Collection = "comics"
+	col = "comics"
 )
 
 // Comic :  comic model
@@ -39,12 +35,12 @@ type price struct {
 	Price float32 `json:"price"`
 }
 
-// GetAll : get all items
-func GetAll() (items []Comic) {
+// getAll : get all items
+func getAll() (items []Comic) {
 
 	ctx, client := db.Connect()
 
-	collection := client.Database("todo").Collection(Collection)
+	collection := client.Database("todo").Collection(col)
 	cursor, _ := collection.Find(ctx, bson.M{})
 
 	defer func() {
@@ -65,14 +61,14 @@ func GetAll() (items []Comic) {
 	return
 }
 
-// GetOne : Get one item
-func GetOne(id int) (item Comic) {
+// getOne : Get one item
+func getOne(id int) (item Comic) {
 
 	ctx, client := db.Connect()
 
 	defer client.Disconnect(ctx)
 
-	collection := client.Database("todo").Collection(Collection)
+	collection := client.Database("todo").Collection(col)
 	collection.FindOne(context.TODO(), bson.M{"id": id}).Decode(&item)
 	return
 }
@@ -102,14 +98,14 @@ func AddMany(items []interface{}) interface{} {
 	return result.InsertedIDs
 }
 */
-// FindOneAndUpdate : finds one comic and update if exist or create it otherwise
-func FindOneAndUpdate(comic Comic) (bson.M, error) {
+// findOneAndUpdate : finds one comic and update if exist or create it otherwise
+func findOneAndUpdate(comic Comic) (bson.M, error) {
 
-	ctx, client := db.Connect()
+	_, client := db.Connect()
 
-	defer client.Disconnect(ctx)
+	defer client.Disconnect(context.Background())
 
-	collection := client.Database("todo").Collection(Collection)
+	collection := client.Database(db.DbName).Collection(col)
 	filter := bson.M{"id": comic.Id}
 
 	// Create an instance of an options and set the desired options
@@ -123,8 +119,7 @@ func FindOneAndUpdate(comic Comic) (bson.M, error) {
 	// Set quantity random
 	comic.Quantity = rand.Intn(1000)
 
-	
-	result := collection.FindOneAndUpdate(ctx, filter, bson.M{"$set": comic}, &opt)
+	result := collection.FindOneAndUpdate(context.Background(), filter, bson.M{"$set": comic}, &opt)
 
 	if result.Err() != nil {
 		return nil, result.Err()
@@ -134,4 +129,48 @@ func FindOneAndUpdate(comic Comic) (bson.M, error) {
 	decodeErr := result.Decode(&item)
 
 	return item, decodeErr
+}
+
+// FindOneAndUpdate : finds one comic and update if exist or create it otherwise
+func findAndUpdateMany(comics []Comic) ([]interface{}, error) {
+
+	ctx, client := db.Connect()
+
+	defer client.Disconnect(ctx)
+
+	collection := client.Database(db.DbName).Collection(col)
+
+	// Create an instance of an options and set the desired options
+	upsert := true
+	after := options.After
+	opt := options.FindOneAndUpdateOptions{
+		ReturnDocument: &after,
+		Upsert:         &upsert,
+	}
+
+	var items = make([]interface{}, len(comics))
+
+	for i, comic := range comics {
+		// Set quantity random
+		comic.Quantity = rand.Intn(1000)
+
+		filter := bson.M{"id": comic.Id}
+
+		result := collection.FindOneAndUpdate(context.Background(), filter, bson.M{"$set": comic}, &opt)
+
+		if result.Err() != nil {
+			return nil, result.Err()
+		}
+
+		item := bson.M{}
+		decodeErr := result.Decode(&item)
+
+		if decodeErr != nil {
+			return nil, decodeErr
+		}
+
+		items[i] = item
+	}
+
+	return items, nil
 }

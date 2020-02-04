@@ -24,7 +24,7 @@ func RetrieveOne(c *gin.Context) {
 		return
 	}
 
-	result := GetOne(int(id))
+	result := getOne(int(id))
 
 	if result.Id == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"message": fmt.Sprintf("Cannot find item with id %s", idParam)})
@@ -53,26 +53,13 @@ func RetrieveAll(c *gin.Context) {
 	}
 
 	comics := comicsResponse.Data.Results
-	// Send a findOneAndUpdate with upsert = true and returnNewDocument = true
 
-	var items = make([]interface{}, len(comics))
+	items, err := findAndUpdateMany(comics)
 
-	for i, comic := range comics {
-		doc, err := FindOneAndUpdate(comic)
-
-		if err != nil {
-			fmt.Printf("Error: %s", err.Error())
-		}
-
-		items[i] = doc
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
 	}
-
-	/*items := make([]interface{}, len(comics))
-	  for i := range comics {
-	  	comics[i].Quantity = rand.Intn(1000)
-	  	items[i] = comics[i]
-	  }
-	  comic.AddMany(_client, items)*/
 
 	c.JSON(http.StatusOK, items)
 }

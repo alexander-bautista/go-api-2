@@ -15,11 +15,6 @@ import (
 // DbName :  Database name
 const DbName = "todo"
 
-// Client contains mongo.Client
-type Client struct {
-	client *mongo.Client
-}
-
 func Connect() (context.Context, *mongo.Client) {
 	connectionString := "mongodb+srv://todo_user:todo2020@traffic-nkwxe.mongodb.net/todo?retryWrites=true&w=majority"
 
