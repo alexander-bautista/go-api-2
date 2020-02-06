@@ -9,23 +9,30 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/alexander-bautista/go-api-2/comics"
+	_comicHttpDeliver "github.com/alexander-bautista/go-api-2/comic/delivery/http"
+	_comicRepo "github.com/alexander-bautista/go-api-2/comic/repository"
+	_comicUsecase "github.com/alexander-bautista/go-api-2/comic/usecase"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 
 	"github.com/gin-gonic/gin"
 )
 
-/*var _ctx context.Context
-var _client *mongo.Client*/
 var _cancel context.CancelFunc
 
 func main() {
-	//_ctx, _client = db.Connect()
-
 	router := gin.Default()
-
 	v1 := router.Group("/api")
 
-	comics.ComicsRegister(v1.Group("/comics"))
+	ctx, col := Connect()
+
+	comicRepo := _comicRepo.NewMongoComicRepository(col)
+	timeoutContext := time.Duration(5 * time.Second)
+
+	cu := _comicUsecase.NewComicUsecase(comicRepo, timeoutContext)
+
+	_comicHttpDeliver.NewComicHandler(v1.Group("/comics"), cu)
 
 	test := router.Group("/api/ping")
 
@@ -56,29 +63,55 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	defer cancel()
+
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server Shutdown:", err)
+		log.Fatal("Error while shutdown server:", err)
 	}
-	log.Println("Server exiting")
 
-	//db.Disconnect()
-}
-
-func sleepAndTalk(ctx context.Context, d time.Duration, s string) {
+	// catching ctx.Done(). timeout of 5 seconds.
 	select {
-	case <-time.After(d):
-		fmt.Println(s)
 	case <-ctx.Done():
-		log.Println(ctx.Err())
+		log.Println("timeout of 5 seconds.")
 	}
+
+	Disconnect(ctx, col)
+	log.Println("Server exiting")
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("handler started")
+func Connect() (context.Context, *mongo.Collection) {
+	connectionString := "mongodb+srv://todo_user:todo2020@traffic-nkwxe.mongodb.net/todo?retryWrites=true&w=majority"
 
-	defer log.Printf("handler ended")
+	if os.Getenv("DATABASE_URL") != "" {
+		connectionString = os.Getenv("DATABASE_URL")
+	}
 
-	time.Sleep(5 * time.Second)
+	opts := options.Client()
+	opts.ApplyURI(connectionString)
+	opts.SetMaxPoolSize(5)
 
-	fmt.Fprint(w, "hello")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	client, err := mongo.Connect(ctx, opts)
+
+	defer cancel()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Check the connection
+	err = client.Ping(context.Background(), readpref.Primary())
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Connected to MongoDB!")
+
+	return ctx, client.Database("todo").Collection("comics")
+}
+
+// Disconnect : Disconnect
+func Disconnect(ctx context.Context, col *mongo.Collection) {
+	fmt.Println("Disconnecting from MongoDB!")
+	defer col.Database().Client().Disconnect(ctx)
 }
