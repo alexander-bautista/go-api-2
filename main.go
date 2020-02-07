@@ -9,23 +9,28 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/alexander-bautista/go-api-2/comics"
+	"github.com/alexander-bautista/go-api-2/infrastructure/datastore"
+	ro "github.com/alexander-bautista/go-api-2/infrastructure/router"
+	"github.com/alexander-bautista/go-api-2/registry"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-/*var _ctx context.Context
-var _client *mongo.Client*/
 var _cancel context.CancelFunc
 
 func main() {
-	//_ctx, _client = db.Connect()
 
 	router := gin.Default()
-
 	v1 := router.Group("/api")
 
-	comics.ComicsRegister(v1.Group("/comics"))
+	ctx, col := datastore.Connect()
+
+	//defer Disconnect(ctx, )
+
+	r := registry.NewRegistry(col)
+
+	ro.NewRouter(v1, r.NewAppController())
 
 	test := router.Group("/api/ping")
 
@@ -56,29 +61,23 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	defer cancel()
+
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server Shutdown:", err)
+		log.Fatal("Error while shutdown server:", err)
 	}
-	log.Println("Server exiting")
 
-	//db.Disconnect()
-}
-
-func sleepAndTalk(ctx context.Context, d time.Duration, s string) {
+	// catching ctx.Done(). timeout of 5 seconds.
 	select {
-	case <-time.After(d):
-		fmt.Println(s)
 	case <-ctx.Done():
-		log.Println(ctx.Err())
+		log.Println("timeout of 5 seconds.")
 	}
+
+	//Disconnect(ctx, col)
+	log.Println("Server exiting")
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("handler started")
-
-	defer log.Printf("handler ended")
-
-	time.Sleep(5 * time.Second)
-
-	fmt.Fprint(w, "hello")
+// Disconnect : Disconnect
+func Disconnect(ctx context.Context, col *mongo.Collection) {
+	fmt.Println("Disconnecting from MongoDB!")
+	defer col.Database().Client().Disconnect(ctx)
 }
