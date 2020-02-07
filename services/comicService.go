@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	data "github.com/alexander-bautista/go-api-2/data"
-	"github.com/alexander-bautista/go-api-2/models"
+	"github.com/alexander-bautista/go-api-2/domain/model"
 )
 
 type ComicService struct {
@@ -27,11 +27,11 @@ func (c ComicService) IsDuplicated(id int) error {
 
 }
 
-func (c *ComicService) GetOne(id int) (*models.Comic, error) {
+func (c *ComicService) GetOne(id int) (*model.Comic, error) {
 	return c.repo.GetOne(id)
 }
 
-func (c ComicService) GetAll() ([]*models.Comic, error) {
+func (c ComicService) GetAll() ([]*model.Comic, error) {
 	return c.GetAll()
 }
 
