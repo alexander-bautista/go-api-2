@@ -8,7 +8,7 @@ import (
 	"time"
 
 	data "github.com/alexander-bautista/go-api-2/data"
-	"github.com/alexander-bautista/go-api-2/models"
+	"github.com/alexander-bautista/go-api-2/domain/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -30,7 +30,7 @@ func NewComicRepositoryImpl(col *mongo.Collection) data.ComicRepository {
 }
 
 // getOne : Get one item
-func (r *ComicRepositoryImpl) GetOne(id int) (comic *models.Comic, err error) {
+func (r *ComicRepositoryImpl) GetOne(id int) (comic *model.Comic, err error) {
 
 	ctx, client := connect()
 
@@ -47,7 +47,7 @@ func (r *ComicRepositoryImpl) GetOne(id int) (comic *models.Comic, err error) {
 }
 
 // getAll : get all items
-func (r *ComicRepositoryImpl) GetAll() ([]*models.Comic, error) {
+func (r *ComicRepositoryImpl) GetAll() ([]*model.Comic, error) {
 
 	ctx, client := connect()
 
@@ -59,10 +59,10 @@ func (r *ComicRepositoryImpl) GetAll() ([]*models.Comic, error) {
 		client.Disconnect(ctx)
 	}()
 
-	items := make([]*models.Comic, 0)
+	items := make([]*model.Comic, 0)
 
 	for cursor.Next(ctx) {
-		oneItem := &models.Comic{}
+		oneItem := &model.Comic{}
 		err := cursor.Decode(&oneItem)
 
 		if err != nil {

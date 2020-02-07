@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/alexander-bautista/go-api-2/comic"
-	"github.com/alexander-bautista/go-api-2/models"
+	"github.com/alexander-bautista/go-api-2/domain/model"
 )
 
 type comicUsecase struct {
@@ -20,7 +20,7 @@ func NewComicUsecase(c comic.Repository, timeout time.Duration) comic.Usecase {
 	}
 }
 
-func (c *comicUsecase) GetOne(ctx context.Context, id int) (*models.Comic, error) {
+func (c *comicUsecase) GetOne(ctx context.Context, id int) (*model.Comic, error) {
 	con, cancel := context.WithTimeout(ctx, c.contextTimeout)
 
 	defer cancel()
@@ -34,7 +34,7 @@ func (c *comicUsecase) GetOne(ctx context.Context, id int) (*models.Comic, error
 	return comic, nil
 }
 
-func (c *comicUsecase) GetAll(ctx context.Context) ([]*models.Comic, error) {
+func (c *comicUsecase) GetAll(ctx context.Context) ([]*model.Comic, error) {
 	con, cancel := context.WithTimeout(ctx, c.contextTimeout)
 
 	defer cancel()
