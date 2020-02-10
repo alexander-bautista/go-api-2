@@ -22,6 +22,7 @@ var _cancel context.CancelFunc
 func main() {
 
 	router := gin.Default()
+
 	v1 := router.Group("/api")
 
 	ctx, col := datastore.Connect()
