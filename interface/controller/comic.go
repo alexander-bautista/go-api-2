@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"context"
-
 	"github.com/alexander-bautista/go-api-2/domain/model"
 	"github.com/alexander-bautista/go-api-2/usecase/interactor"
 )
@@ -12,16 +10,16 @@ type comicController struct {
 }
 
 type ComicController interface {
-	GetAll(ctx context.Context) ([]*model.Comic, error)
-	GetOne(ctx context.Context, id int) (*model.Comic, error)
+	GetAll() ([]*model.Comic, error)
+	GetOne(id int) (*model.Comic, error)
 }
 
 func NewComicController(ci interactor.ComicInteractor) ComicController {
 	return &comicController{ComicInteractor: ci}
 }
 
-func (cc *comicController) GetAll(ctx context.Context) ([]*model.Comic, error) {
-	c, err := cc.ComicInteractor.GetAll(ctx)
+func (cc *comicController) GetAll() ([]*model.Comic, error) {
+	c, err := cc.ComicInteractor.GetAll()
 
 	if err != nil {
 		return nil, err
@@ -30,8 +28,8 @@ func (cc *comicController) GetAll(ctx context.Context) ([]*model.Comic, error) {
 	return c, nil
 }
 
-func (cc *comicController) GetOne(ctx context.Context, id int) (*model.Comic, error) {
-	c, err := cc.ComicInteractor.GetOne(ctx, id)
+func (cc *comicController) GetOne(id int) (*model.Comic, error) {
+	c, err := cc.ComicInteractor.GetOne(id)
 
 	if err != nil {
 		return nil, err
